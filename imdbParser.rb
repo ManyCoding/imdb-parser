@@ -1,35 +1,41 @@
-def parseFile(fileName, hash)
-	counter = 1
-	file = File.new(fileName, "r")
-	key = counter
-	while (line = file.gets)
-		key = line
-		hash[key] = counter
-		counter = counter + 1
+#Encoding
+#Speed
+#Correct data structures
+#Different name, e.g. arthur rubinstein - the love of life/ imdb - Love of Life
+
+class IMDBparser
+	def initialize(fileName)
+		@fileName = fileName
+		@movies = Array.new
 	end
-	file.close
-rescue => err
-	puts "Exception: #{err}"
-	err
-end
 
-def sendRequest
-	require 'omdb'
- 
-	# Search for all movies with a name like 'Broken City'
-	movies = Omdb::Api.new.search('Broken city')
-	puts movies[:status] # => 200
-	puts movies[:movies].size # => 3
-end
+	# read CSV
+	def parseCSV
+		require 'CSV'
+		CSV.foreach(@fileName, encoding:"UTF-8") do |row|
+			@movies.push sendRequest(row[0], row[1])
+		end
+	end
 
-def showResults(hash)
-	hash.each {|key, value| puts "#{key}: #{value}"}
-end
+	# get rating through OMDB API
+	def sendRequest(title, year)
+		require 'omdb'
+		movie = Omdb::Api.new.fetch(title, year)
+		#count = 0
+		if movie[:status] != 404
+			movie[:movie].imdb_rating + " " + title
 
-begin
-	fileName = "movies.csv"
-	movies = Hash.new
-	parseFile fileName, movies
-	sendRequest
-	#showResults movies
-end
+		end
+	end
+
+	def getResults
+		@movies.sort! {|x,y| y <=> x}
+		File.open('results.txt', "wb") { |file| file.write(@movies)}
+		puts "results.txt updated"
+		#@movies.each {|movie| puts movie}
+	end
+end	
+
+parser = IMDBparser.new("moviesTest.csv")
+parser.parseCSV
+parser.getResults
