@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
 # program: imdbParser.rb
-# usage:   ruby imdbParser.rb InputFile, SortedOutputFile
+# usage:   ruby imdbParser.rb InputFile SortedOutputFile
 
 #TODO
 # Convention (var names)
@@ -17,8 +17,9 @@
 require 'omdb'
 require 'CSV'
 require 'celluloid/autostart'
+Celluloid.logger = nil
 
-class Movie 	
+class Movie
 	include Celluloid
 	attr_accessor :title, :year, :rating
 	
@@ -32,18 +33,18 @@ class Movie
 	def getRatingFromImdb
 		# get movie data through OMDB API
 		movie = Omdb::Api.new.fetch(@title, @year)
-		# check af a movie is found
+		# check if a movie was found
 		if movie[:status] != 404
+			# 0 for unfound movies
 			@rating = movie[:movie].imdb_rating == 'N/A' ? 0 : movie[:movie].imdb_rating.to_f
 		end
 	end	
 end
 
-
 # check the number of arguments
 unless ARGV.length == 2
 	puts "Wrong number of arguments."
-	puts "Usage: ruby imdbParser.rb InputFile.csv, SortedOutputFile.txt\n"
+	puts "Usage: ruby imdbParser.rb InputFile.csv SortedOutputFile.txt\n"
 	exit
 end
 
@@ -56,26 +57,26 @@ movies = Array.new
 # loop through each record in the csv, adding them to our array
 CSV.foreach(inputFile, encoding:"UTF-8") do |row|
 	movie = Movie.new row[0], row[1]
+	# getting info through OMDB Api asynchronously
+	movie_future = movie.future :getRatingFromImdb
 
 	#show progress
 	count = %x{wc -l #{inputFile}}.split.first.to_i
-	if $. % 25 == 0
+	if $. % 100 == 0
 		puts "fetching data " + (($. / count.to_f) * 100).ceil.to_s + "%"
 	end
-	# getting info through OMDB Api asynchronously
-	movie.async.getRatingFromImdb
-	movies.push movie
+	movies.push movie_future
 end
 
-# sort the data by rating
+# sort data by rating
 movies.sort! {|x,y| y.rating <=> x.rating}
 
 # write down all the sorted records in the SortedOutputFile
 File.open(outputFile, "wb") do |file|
 	movies.each do |m|
 		file << m.title + " -- " + m.rating.to_s + "\n"
-		#file << m.rating.to_s
+		puts m.title + " -- " + m.rating.to_s
 	end
 end
 
-puts "outputFile is updated"
+puts "done, check outputFile"
