@@ -1,16 +1,20 @@
 # imdb-parser
-This is a simple script to read movies' titles and years from CSV, get their rating from IMDB and create TXT with a list, sorted by rating
+This is a simple script to read movies' titles and years from CSV, get their rating from IMDB through OMDB API, and write down the list, sorted by rating
 
 ## Dependencies
 
-OMDB https://github.com/jvanbaarsen/omdb
 CSV
+omdb https://github.com/jvanbaarsen/omdb
+celluloid
 
+## Installation
+
+	$ gem install celluloid
+	$ gem install omdb
 
 ## Usage
 
-1. Update the CSV file name
-2. Run through ruby
+ruby imdbParser.rb InputFile, SortedOutputFile
 
 ## Contributing
 

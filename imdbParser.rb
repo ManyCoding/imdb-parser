@@ -15,16 +15,36 @@
 #How to sort if same rating
 
 require 'omdb'
+require 'CSV'
+require 'celluloid/autostart'
 
-class Movie <
-	Struct.new(:title, :year, :rating)
+class Movie 	
+	include Celluloid
+	attr_accessor :title, :year, :rating
+	
+	def initialize(title, year)
+		@title = title
+		@year = year
+		# -1 for movies without rating
+		@rating = -1
+	end
+	
+	def getRatingFromImdb
+		# get movie data through OMDB API
+		movie = Omdb::Api.new.fetch(@title, @year)
+		# check af a movie is found
+		if movie[:status] != 404
+			@rating = movie[:movie].imdb_rating == 'N/A' ? 0 : movie[:movie].imdb_rating.to_f
+		end
+	end	
 end
+
 
 # check the number of arguments
 unless ARGV.length == 2
-  puts "Wrong number of arguments."
-  puts "Usage: ruby imdbParser.rb InputFile.csv, SortedOutputFile.txt\n"
-  exit
+	puts "Wrong number of arguments."
+	puts "Usage: ruby imdbParser.rb InputFile.csv, SortedOutputFile.txt\n"
+	exit
 end
 
 inputFile = ARGV[0]
@@ -34,27 +54,17 @@ outputFile = ARGV[1]
 movies = Array.new
 
 # loop through each record in the csv, adding them to our array
-require 'CSV'
+CSV.foreach(inputFile, encoding:"UTF-8") do |row|
+	movie = Movie.new row[0], row[1]
 
-file = CSV.foreach(inputFile, encoding:"UTF-8") do |row|
-	m = Movie.new
-	m.title = row[0]
-	m.year = row[1]
-	# in case we didn't find the rating
-	m.rating = -1
-	# get movie data through OMDB API
-	movie = Omdb::Api.new.fetch(m.title, m.year)
-	
 	#show progress
 	count = %x{wc -l #{inputFile}}.split.first.to_i
-	if $. % 50 == 0
+	if $. % 25 == 0
 		puts "fetching data " + (($. / count.to_f) * 100).ceil.to_s + "%"
 	end
-	# check af a movie is found
-	if movie[:status] != 404
-		m.rating = movie[:movie].imdb_rating == 'N/A' ? 0 : movie[:movie].imdb_rating.to_f
-	end
-	movies.push m
+	# getting info through OMDB Api asynchronously
+	movie.async.getRatingFromImdb
+	movies.push movie
 end
 
 # sort the data by rating
@@ -64,6 +74,7 @@ movies.sort! {|x,y| y.rating <=> x.rating}
 File.open(outputFile, "wb") do |file|
 	movies.each do |m|
 		file << m.title + " -- " + m.rating.to_s + "\n"
+		#file << m.rating.to_s
 	end
 end
 
