@@ -21,7 +21,7 @@ celluloid
 
 ## Usage
 
-	$ ruby imdbParser.rb InputFile.csv OutputFile.txt
+	$ ruby imdbParser.rb input.csv output.txt
 
 
 ## Contributing
