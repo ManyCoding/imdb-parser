@@ -5,7 +5,9 @@ This is a simple script to read movies data (title&year) from CSV, get their rat
 ## Dependencies
 
 CSV
-omdb https://github.com/ManyCoding/omdb
+
+omdb https://github.com/ManyCoding/omdb fork from https://github.com/jvanbaarsen/omdb
+
 celluloid
 
 
