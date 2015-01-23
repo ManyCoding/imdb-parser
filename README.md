@@ -1,20 +1,28 @@
 # imdb-parser
-This is a simple script to read movies' titles and years from CSV, get their rating from IMDB through OMDB API, and write down the list, sorted by rating. Parallelizing is done through Celluloid
+This is a simple script to read movies data (title&year) from CSV, get their rating from IMDB through OMDB API, and write down the list, sorted by rating. Parallelizing is done through Celluloid
+
 
 ## Dependencies
 
 CSV
-omdb https://github.com/jvanbaarsen/omdb
+
+omdb https://github.com/ManyCoding/omdb fork from https://github.com/jvanbaarsen/omdb
+
 celluloid
+
 
 ## Installation
 
 	$ gem install celluloid
+	download omdb with rating, go in the folder
+	$ gem build omdb.gemspec 
 	$ gem install omdb
+
 
 ## Usage
 
-ruby imdbParser.rb InputFile SortedOutputFile
+	$ ruby imdbParser.rb input.csv output.txt
+
 
 ## Contributing
 

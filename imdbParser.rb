@@ -46,7 +46,6 @@ outputFile = ARGV[1]
 
 # an array which holds Movies
 movies = Array.new
-futures = Array.new
 
 # loop through each record in the csv, adding them to our array
 CSV.foreach(inputFile, encoding:"UTF-8") do |row|
@@ -67,7 +66,6 @@ end
 
 movies.each do |m|
 	m.rating = m.rating_future.value == nil ? -1 : m.rating_future.value
-	puts m.title + " -- " + m.rating.to_s + "\n"
 end
 
 # sort data by rating
@@ -77,6 +75,7 @@ movies.sort! {|x,y| y.rating <=> x.rating}
 File.open(outputFile, "wb") do |file|
 	movies.each do |m|
 		file << m.title + " -- " + m.rating.to_s + "\n"
+		puts m.title + " -- " + m.rating.to_s + "\n"
 	end
 end
 
