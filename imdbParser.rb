@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
 # program: imdbParser.rb
-# usage:   ruby imdbParser.rb InputFile SortedOutputFile
+# usage:   ruby imdbParser.rb input.csv output
 
 require 'omdb'
 require 'CSV'
@@ -9,12 +9,11 @@ require 'celluloid/autostart'
 Celluloid.logger = nil
 
 class Movie
-	attr_accessor :title, :rating, :rating_future
+	attr_accessor :title, :rating, :ratingFuture
 	
-	def initialize(title, rating, rating_future)
+	def initialize(title, ratingFuture)
 		@title = title
-		@rating = rating
-		@rating_future = rating_future
+		@ratingFuture = ratingFuture
 	end
 end
 
@@ -50,10 +49,8 @@ movies = Array.new
 # loop through each record in the csv, adding them to our array
 CSV.foreach(inputFile, encoding:"UTF-8") do |row|
 	rating = Rating.new
-	# create future to get our rating asynchronously
+	# create future to run method asynchronously
 	future = rating.future :getRatingFromImdb, row[0], row[1]
-	# create movie object
-	movie = Movie.new row[0], -1 , future
 	
 	#show progress
 	count = %x{wc -l #{inputFile}}.split.first.to_i
@@ -61,22 +58,29 @@ CSV.foreach(inputFile, encoding:"UTF-8") do |row|
 		puts "fetching data " + (($. / count.to_f) * 100).ceil.to_s + "%"
 	end
 	# put movie into array
-	movies.push movie
-end
-
-movies.each do |m|
-	m.rating = m.rating_future.value == nil ? -1 : m.rating_future.value
-end
-
-# sort data by rating
-movies.sort! {|x,y| y.rating <=> x.rating}
-
-# write down all the sorted records in the SortedOutputFile
-File.open(outputFile, "wb") do |file|
-	movies.each do |m|
-		file << m.title + " -- " + m.rating.to_s + "\n"
-		puts m.title + " -- " + m.rating.to_s + "\n"
+	movies.push Movie.new row[0] , future
+	
+	# try to keep the number of threads around 20
+	if Thread.list.length > 20
+		rating.async.terminate
 	end
 end
 
-puts "done, check outputFile"
+#get our ratings from future objects
+movies.each do |m|
+	m.rating = m.ratingFuture.value == nil ? -1 : m.ratingFuture.value
+end
+
+# sort data by rating
+movies.sort_by! {|x| [x.rating]}.reverse!
+
+# write down all the sorted records in the SortedOutputFile
+File.open(outputFile, "wb") do |file|
+	file << "#0 for unrated, -1 for unfound\n\n"
+	movies.each do |m|
+		file << m.title + " -- " + m.rating.to_s + "\n"
+		puts m.title + "\t"+ m.rating.to_s + "\n"
+	end
+end
+
+puts "done, check output"
