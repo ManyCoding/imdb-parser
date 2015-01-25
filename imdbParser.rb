@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
 # program: imdbParser.rb
-# usage:   ruby imdbParser.rb input.csv output
+# usage:   ruby imdbParser.rb input.csv (output)
 
 require 'omdb'
 require 'CSV'
@@ -34,17 +34,19 @@ class Rating
 end
 
 # check the number of arguments
-unless ARGV.length == 2
+unless ARGV.length == 1 || ARGV.length == 2
 	puts "Wrong number of arguments."
-	puts "Usage: ruby imdbParser.rb InputFile.csv SortedOutputFile.txt\n"
+	puts "Usage: ruby imdbParser.rb input.csv (output.txt)\n"
 	exit
 end
 
 inputFile = ARGV[0]
-outputFile = ARGV[1]
+outputFile = ARGV.length == 1 ? outputFile = "output.txt" : ARGV[1]
 
 # an array which holds Movies
 movies = Array.new
+# the number of lines in input file
+lines = %x{wc -l #{inputFile}}.split.first.to_i
 
 # loop through each record in the csv, adding them to our array
 CSV.foreach(inputFile, encoding:"UTF-8") do |row|
@@ -53,9 +55,8 @@ CSV.foreach(inputFile, encoding:"UTF-8") do |row|
 	future = rating.future :getRatingFromImdb, row[0], row[1]
 	
 	#show progress
-	count = %x{wc -l #{inputFile}}.split.first.to_i
 	if $. % 100 == 0
-		puts "fetching data " + (($. / count.to_f) * 100).ceil.to_s + "%"
+		puts "fetching data " + (($. / lines.to_f) * 100).ceil.to_s + "%"
 	end
 	# put movie into array
 	movies.push Movie.new row[0] , future
@@ -79,8 +80,8 @@ File.open(outputFile, "wb") do |file|
 	file << "#0 for unrated, -1 for unfound\n\n"
 	movies.each do |m|
 		file << m.title + " -- " + m.rating.to_s + "\n"
-		puts m.title + "\t"+ m.rating.to_s + "\n"
+		puts m.title + "  "+ m.rating.to_s + "\n"
 	end
 end
 
-puts "done, check output"
+puts "\nprocessed #{movies.size}/#{lines} lines, check #{outputFile}"
