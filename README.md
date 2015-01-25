@@ -21,6 +21,10 @@ celluloid
 
 ## Usage
 
+	input file format - comma separated CSV, e.g. title, year (optional)
+	output - title -- rating
+
+	$ ruby imdbParser.rb input.csv
 	$ ruby imdbParser.rb input.csv output.txt
 
 
