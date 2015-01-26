@@ -8,13 +8,18 @@ CSV
 
 omdb https://github.com/ManyCoding/omdb fork from https://github.com/jvanbaarsen/omdb
 
+Notice: current omdb doesn't support rating yet, so use my fork
+
 celluloid
 
 
 ## Installation
+	
+	Get ruby and gems if you still haven't - http://rubyinstaller.org/
+	Download https://github.com/ManyCoding/omdb
 
 	$ gem install celluloid
-	download omdb with rating, go in the folder
+	$ cd omdb_folder
 	$ gem build omdb.gemspec 
 	$ gem install omdb
 
