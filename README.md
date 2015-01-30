@@ -26,7 +26,7 @@ celluloid
 
 ## Usage
 
-	input file format - CSV file, including title, year (optional) [sample input](https://drive.google.com/file/d/0B-mR_eT8iE68NU1JcEMycmJ4R00/view)
+	input file format - CSV file, including title, year (optional) (sample input)[https://drive.google.com/file/d/0B-mR_eT8iE68NU1JcEMycmJ4R00/view]
 	output - title year -- rating
 
 	$ ruby imdbParser.rb input.csv
