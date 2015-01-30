@@ -21,7 +21,7 @@ celluloid
 	$ gem install celluloid
 	$ cd omdb_folder
 	$ gem build omdb.gemspec 
-	$ gem install omdb
+	$ gem install omdb-1.0.5.gem
 
 
 ## Usage
