@@ -9,11 +9,12 @@ require 'celluloid/autostart'
 Celluloid.logger = nil
 
 class Movie
-	attr_accessor :title, :rating, :ratingFuture
+	attr_accessor :title, :year, :rating, :ratingFuture
 	
-	def initialize(title, ratingFuture)
+	def initialize(title, year, ratingFuture)
 		@title = title
 		@ratingFuture = ratingFuture
+		@year = year == nil ? "NO_YEAR" : year
 	end
 end
 
@@ -41,7 +42,8 @@ unless ARGV.length == 1 || ARGV.length == 2
 end
 
 inputFile = ARGV[0]
-outputFile = ARGV.length == 1 ? outputFile = "output.txt" : ARGV[1]
+#if null outputFile is default *_output.txt, where * is input file name
+outputFile = ARGV.length == 1 ? outputFile = inputFile.chomp(File.extname(inputFile)) + "_output.txt" : ARGV[1]
 
 # an array which holds Movies
 movies = Array.new
@@ -49,7 +51,7 @@ movies = Array.new
 lines = %x{wc -l #{inputFile}}.split.first.to_i
 
 # loop through each record in the csv, adding them to our array
-CSV.foreach(inputFile, encoding:"UTF-8") do |row|
+CSV.foreach(inputFile) do |row|
 	rating = Rating.new
 	# create future to run method asynchronously
 	future = rating.future :getRatingFromImdb, row[0], row[1]
@@ -59,7 +61,7 @@ CSV.foreach(inputFile, encoding:"UTF-8") do |row|
 		puts "fetching data " + (($. / lines.to_f) * 100).ceil.to_s + "%"
 	end
 	# put movie into array
-	movies.push Movie.new row[0] , future
+	movies.push Movie.new row[0], row[1], future
 	
 	# try to keep the number of threads around 20
 	if Thread.list.length > 20
@@ -67,9 +69,13 @@ CSV.foreach(inputFile, encoding:"UTF-8") do |row|
 	end
 end
 
+begin
 #get our ratings from future objects
 movies.each do |m|
 	m.rating = m.ratingFuture.value == nil ? -1 : m.ratingFuture.value
+end
+rescue
+	puts "Some error"
 end
 
 # sort data by rating
@@ -79,8 +85,8 @@ movies.sort_by! {|x| [x.rating]}.reverse!
 File.open(outputFile, "wb") do |file|
 	file << "#0 for unrated, -1 for unfound\n\n"
 	movies.each do |m|
-		file << m.title + " -- " + m.rating.to_s + "\n"
-		puts m.title + "  "+ m.rating.to_s + "\n"
+		file << m.title + " " + m.year.to_s + " -- " + m.rating.to_s + "\n"
+		puts m.title + " " + m.year +  " -- " + m.rating.to_s + "\n"
 	end
 end
 

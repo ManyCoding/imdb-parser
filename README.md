@@ -21,13 +21,13 @@ celluloid
 	$ gem install celluloid
 	$ cd omdb_folder
 	$ gem build omdb.gemspec 
-	$ gem install omdb-1.0.5.gem
+	$ gem install omdb-1.0.4.gem
 
 
 ## Usage
 
-	input file format - comma separated CSV, e.g. title, year (optional)
-	output - title -- rating
+	input file format - CSV file, including title, year (optional) [sample input](https://drive.google.com/file/d/0B-mR_eT8iE68NU1JcEMycmJ4R00/view)
+	output - title year -- rating
 
 	$ ruby imdbParser.rb input.csv
 	$ ruby imdbParser.rb input.csv output.txt
