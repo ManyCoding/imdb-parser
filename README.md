@@ -6,9 +6,7 @@ This is a simple script to read movies data (title&year) from CSV, get their rat
 
 CSV
 
-omdb https://github.com/ManyCoding/omdb fork from https://github.com/jvanbaarsen/omdb
-
-Notice: current omdb doesn't support rating yet, so use my fork
+omdb https://github.com/jvanbaarsen/omdb
 
 celluloid
 
@@ -16,7 +14,7 @@ celluloid
 ## Installation
 	
 	Get ruby and gems if you still haven't - http://rubyinstaller.org/
-	Download https://github.com/ManyCoding/omdb
+	Download omdb https://github.com/jvanbaarsen/omdb
 
 	$ gem install celluloid
 	$ cd omdb_folder
