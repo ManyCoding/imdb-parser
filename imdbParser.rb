@@ -14,7 +14,7 @@ class Movie
 	def initialize(title, year, ratingFuture)
 		@title = title
 		@ratingFuture = ratingFuture
-		@year = year == nil ? "NO_YEAR" : year
+		@year = year || "NO_YEAR"
 	end
 end
 
@@ -27,10 +27,8 @@ class Rating
 		# get movie data through OMDB API
 		movie = Omdb::Api.new.fetch(title, year)
 		# check if a movie was found
-		if movie[:status] != 404
-			# 0 for unrated movies
-			@rating = movie[:movie].imdb_rating == 'N/A' ? 0 : movie[:movie].imdb_rating.to_f
-		end
+		# 0 for unrated movies
+		@rating = movie[:movie].imdb_rating == 'N/A' ? 0 : movie[:movie].imdb_rating.to_f unless movie[:status] == 404
 	end
 end
 
@@ -57,25 +55,21 @@ CSV.foreach(inputFile) do |row|
 	future = rating.future :getRatingFromImdb, row[0], row[1]
 	
 	#show progress
-	if $. % 100 == 0
-		puts "fetching data " + (($. / lines.to_f) * 100).ceil.to_s + "%"
-	end
+	puts "fetching data " + (($. / lines.to_f) * 100).ceil.to_s + "%" if $. % 100 == 0
 	# put movie into array
 	movies.push Movie.new row[0], row[1], future
 	
 	# try to keep the number of threads around 20
-	if Thread.list.length > 20
-		rating.async.terminate
-	end
+	rating.async.terminate if Thread.list.length > 20
 end
 
 begin
 #get our ratings from future objects
 movies.each do |m|
-	m.rating = m.ratingFuture.value == nil ? -1 : m.ratingFuture.value
+	m.rating = m.ratingFuture.value || -1
 end
 rescue
-	puts "Some error"
+	puts "Request failed"
 end
 
 # sort data by rating
